@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Отзывы Мебель — аналитика</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --linen:#F5F0E6;
+    --linen-deep:#EDE5D3;
+    --espresso:#2B241F;
+    --espresso-soft:#443A30;
+    --oak:#A9724C;
+    --oak-deep:#8B5A38;
+    --sage:#5C7A5C;
+    --sage-bg:#E4EBE1;
+    --brick:#A6453A;
+    --brick-bg:#F3E1DD;
+    --slate:#5B6B73;
+    --ink:#2B241F;
+    --paper:#FFFDF9;
+    --rule:#D9CFBB;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--linen);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:var(--espresso);
+    color:var(--linen);
+    padding:56px 0 40px;
+    border-bottom:6px solid var(--oak);
+  }
+  .hero .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--oak);
+    margin-bottom:14px;
+  }
+  .hero h1{font-size:38px;color:#FBF7EF;max-width:680px;}
+  .hero p.sub{max-width:600px;color:#CBBFA9;margin-top:12px;font-size:15px;}
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:1px;
+    background:var(--espresso-soft);
+    margin-top:36px;
+    border-top:1px solid var(--espresso-soft);
+  }
+  .kpi{background:var(--espresso);padding:18px 16px;}
+  .kpi .num{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;color:#FBF7EF;}
+  .kpi .lbl{font-size:11.5px;color:#A99B84;margin-top:4px;text-transform:uppercase;letter-spacing:.05em;}
+
+  /* ---------- SECTION ---------- */
+  section{padding:52px 0;}
+  section.alt{background:var(--linen-deep);}
+  .section-head{display:flex;align-items:baseline;gap:14px;margin-bottom:28px;}
+  .section-head .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--oak-deep);
+    border:1px solid var(--oak-deep);border-radius:3px;padding:2px 8px;
+  }
+  .section-head h2{font-size:26px;}
+  .section-note{color:var(--espresso-soft);font-size:14px;max-width:720px;margin-top:6px;}
+
+  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;}
+  .card{
+    background:var(--paper);
+    border:1px solid var(--rule);
+    border-radius:6px;
+    padding:22px;
+  }
+  .card h3{font-size:16px;margin-bottom:14px;}
+
+  /* ---------- HYPOTHESIS CARDS ---------- */
+  .hyp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:22px;}
+  .hyp-card{
+    background:var(--paper);border:1px solid var(--rule);border-radius:6px;
+    padding:24px 22px 20px;position:relative;overflow:hidden;
+  }
+  .hyp-card .n{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);
+    text-transform:uppercase;letter-spacing:.08em;
+  }
+  .hyp-card h3{font-size:16.5px;margin:8px 0 14px;line-height:1.35;}
+  .hyp-card .body{font-size:13.5px;color:var(--espresso-soft);}
+  .hyp-card .body b{color:var(--ink);}
+  .stamp{
+    position:absolute;top:20px;right:-4px;
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12.5px;
+    padding:6px 14px 6px 18px;border-radius:3px 0 0 3px;
+    transform:rotate(3deg);letter-spacing:.03em;
+    box-shadow:0 2px 4px rgba(0,0,0,.12);
+  }
+  .stamp.yes{background:var(--sage-bg);color:var(--sage);border:1.5px solid var(--sage);}
+  .stamp.no{background:var(--brick-bg);color:var(--brick);border:1.5px solid var(--brick);}
+  .stamp.maybe{background:#EFE9DA;color:var(--slate);border:1.5px solid var(--slate);}
+  .pvalue{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--oak-deep);margin-top:12px;}
+
+  /* ---------- TABLE ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{
+    text-align:left;font-family:'IBM Plex Mono',monospace;font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--slate);
+    border-bottom:1.5px solid var(--rule);padding:8px 6px;
+  }
+  td{padding:8px 6px;border-bottom:1px solid var(--rule);}
+  tr:last-child td{border-bottom:none;}
+  td.num,th.num{text-align:right;font-family:'IBM Plex Mono',monospace;}
+  .badge{
+    display:inline-block;padding:1px 8px;border-radius:10px;font-size:11.5px;
+    font-family:'IBM Plex Mono',monospace;font-weight:600;
+  }
+  .badge.good{background:var(--sage-bg);color:var(--sage);}
+  .badge.bad{background:var(--brick-bg);color:var(--brick);}
+
+  .tabs{display:flex;gap:8px;margin-bottom:16px;}
+  .tab-btn{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 14px;
+    border:1px solid var(--rule);background:var(--paper);border-radius:16px;cursor:pointer;
+    color:var(--espresso-soft);
+  }
+  .tab-btn.active{background:var(--espresso);color:var(--linen);border-color:var(--espresso);}
+
+  footer{padding:34px 0 50px;color:var(--slate);font-size:12.5px;}
+  footer a{color:var(--oak-deep);}
+
+  canvas{max-width:100%;}
+  @media(max-width:800px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .grid2{grid-template-columns:1fr;}
+    .hero h1{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Аналитический монитор · отзывы клиентов</div>
+    <h1>Что на самом деле не устраивает покупателей мебели</h1>
+    <p class="sub">Свод 12 830 отзывов из Google, Яндекс.Карт и 2ГИС по 548 мебельным компаниям и проверка 5 гипотез о причинах недовольства клиентов.</p>
+    <div class="kpi-row" id="kpiRow"></div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="section-head"><span class="tag">01</span><h2>Общая картина по оценкам</h2></div>
+    <p class="section-note">79% отзывов положительные (4–5★), но за общим средним 4.25 прячется разброс между источниками и почти двукратная разница в длине текста между довольными и недовольными клиентами.</p>
+    <div class="grid2">
+      <div class="card"><h3>Распределение оценок по источникам</h3><canvas id="chartRatingSrc" height="260"></canvas></div>
+      <div class="card"><h3>Длина отзыва vs оценка (слов)</h3><canvas id="chartLength" height="260"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head"><span class="tag">02</span><h2>Динамика 2015–2024</h2></div>
+    <p class="section-note">Объём отзывов вырос в разы к 2023 году, средняя оценка тоже подросла — стоит учитывать при интерпретации, ранние годы представлены слабо.</p>
+    <div class="card"><canvas id="chartYearly" height="110"></canvas></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head"><span class="tag">03</span><h2>Проверка гипотез</h2></div>
+    <p class="section-note">Категоризация жалоб — по ключевым словам/правилам на Python (без внешних LLM), статистика — тесты Манна–Уитни, биномиальный и Спирмена, scipy.stats.</p>
+    <div class="hyp-grid" id="hypGrid"></div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head"><span class="tag">04</span><h2>О чём жалуются</h2></div>
+    <p class="section-note">Категории не взаимоисключающие — один отзыв может задевать несколько тем сразу.</p>
+    <div class="grid2">
+      <div class="card"><h3>Категории жалоб — все отзывы vs только негативные (1–2★)</h3><canvas id="chartComplaints" height="260"></canvas></div>
+      <div class="card">
+        <h3>Частые слова в отзывах</h3>
+        <div class="tabs">
+          <button class="tab-btn active" data-w="neg">Негативные</button>
+          <button class="tab-btn" data-w="pos">Позитивные</button>
+        </div>
+        <canvas id="chartWords" height="260"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head"><span class="tag">05</span><h2>Компании</h2></div>
+    <p class="section-note">Только компании с ≥30 отзывами — для устойчивости средней оценки.</p>
+    <div class="grid2">
+      <div class="card">
+        <h3>Худшие по средней оценке</h3>
+        <table><thead><tr><th>Компания</th><th class="num">Отзывов</th><th class="num">Оценка</th></tr></thead>
+        <tbody id="tblWorst"></tbody></table>
+      </div>
+      <div class="card">
+        <h3>Лучшие по средней оценке</h3>
+        <table><thead><tr><th>Компания</th><th class="num">Отзывов</th><th class="num">Оценка</th></tr></thead>
+        <tbody id="tblBest"></tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Источники: Google Maps, Яндекс.Карты, 2ГИС · Данные очищены и объединены (объединение дублей, нормализация дат/рейтингов) ·
+    Категоризация жалоб и тональность — rule-based на Python, без внешних API · Полная методология в отчёте Word.
+  </div>
+</footer>
+
+<script>
+const D = __DATA_JSON__;
+
+// ---------- KPI ----------
+const kpis = [
+  [D.kpi.total_reviews.toLocaleString('ru-RU'), 'Отзывов всего'],
+  [D.kpi.total_companies, 'Компаний'],
+  [D.kpi.avg_rating, 'Средняя оценка'],
+  [D.kpi.pct_negative + '%', 'Негативных (1–2★)'],
+  [D.kpi.pct_with_text + '%', 'С текстом отзыва'],
+];
+document.getElementById('kpiRow').innerHTML = kpis.map(([n,l]) =>
+  `<div class="kpi"><div class="num">${n}</div><div class="lbl">${l}</div></div>`).join('');
+
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.color = '#443A30';
+const oak='#A9724C', sage='#5C7A5C', brick='#A6453A', slate='#5B6B73', espresso='#2B241F';
+
+// ---------- Rating by source ----------
+new Chart(document.getElementById('chartRatingSrc'), {
+  type:'bar',
+  data:{
+    labels:['1★','2★','3★','4★','5★'],
+    datasets: Object.entries(D.rating_by_source).map(([src, vals], i) => ({
+      label: src,
+      data: [1,2,3,4,5].map(s => vals[s] || 0),
+      backgroundColor: [oak, sage, slate][i % 3],
+    }))
+  },
+  options:{plugins:{legend:{position:'bottom'}}, scales:{y:{title:{display:true,text:'% отзывов источника'}}}}
+});
+
+// ---------- Length vs rating ----------
+new Chart(document.getElementById('chartLength'), {
+  type:'bar',
+  data:{
+    labels:['1★','2★','3★','4★','5★'],
+    datasets:[{label:'Средняя длина, слов', data:[1,2,3,4,5].map(s=>D.length_vs_rating[s]), backgroundColor:[brick,brick,slate,sage,sage]}]
+  },
+  options:{plugins:{legend:{display:false}}}
+});
+
+// ---------- Yearly ----------
+new Chart(document.getElementById('chartYearly'), {
+  data:{
+    labels: D.yearly.years,
+    datasets:[
+      {type:'bar', label:'Число отзывов', data:D.yearly.counts, backgroundColor:'#D8C7AC', yAxisID:'y'},
+      {type:'line', label:'Средняя оценка', data:D.yearly.avg_ratings, borderColor:brick, backgroundColor:brick, yAxisID:'y1', tension:.25, pointRadius:4}
+    ]
+  },
+  options:{
+    scales:{
+      y:{position:'left', title:{display:true,text:'Отзывов'}},
+      y1:{position:'right', min:1, max:5, grid:{drawOnChartArea:false}, title:{display:true,text:'Оценка'}}
+    }
+  }
+});
+
+// ---------- Complaints ----------
+const catLabels = Object.keys(D.complaints.overall);
+new Chart(document.getElementById('chartComplaints'), {
+  type:'bar',
+  data:{
+    labels: catLabels,
+    datasets:[
+      {label:'Все отзывы, %', data: catLabels.map(c => (D.complaints.overall[c]/D.complaints.overall_total_with_text*100).toFixed(1)), backgroundColor:'#D8C7AC'},
+      {label:'Негативные (1-2★), %', data: catLabels.map(c => (D.complaints.negative_only[c]/D.complaints.negative_total*100).toFixed(1)), backgroundColor:brick},
+    ]
+  },
+  options:{indexAxis:'y', plugins:{legend:{position:'bottom'}}}
+});
+
+// ---------- Words ----------
+let wordChart;
+function renderWords(kind){
+  const src = kind==='neg' ? D.top_negative_words : D.top_positive_words;
+  const labels = src.map(x=>x[0]).slice(0,15).reverse();
+  const vals = src.map(x=>x[1]).slice(0,15).reverse();
+  if(wordChart) wordChart.destroy();
+  wordChart = new Chart(document.getElementById('chartWords'), {
+    type:'bar',
+    data:{labels, datasets:[{data:vals, backgroundColor: kind==='neg'?brick:sage}]},
+    options:{indexAxis:'y', plugins:{legend:{display:false}}}
+  });
+}
+renderWords('neg');
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderWords(btn.dataset.w);
+  };
+});
+
+// ---------- Hypothesis cards ----------
+const hypDefs = [
+  {
+    n:'Гипотеза 1', title:'Клиенты чаще недовольны сервисом, а не качеством мебели',
+    stamp: D.h1.confirmed, pv: D.h1.p_value,
+    body: `Среди негативных отзывов с определённой категорией жалобы (n=${D.h1.total_labeled}):
+    <b>${D.h1.service_pct}%</b> касаются сервиса (доставка/персонал/деньги),
+    <b>${D.h1.product_pct}%</b> — качества товара.`
+  },
+  {
+    n:'Гипотеза 2', title:'Быстрая доставка повышает вероятность позитивной оценки',
+    stamp: D.h2.confirmed, pv: D.h2.p_value,
+    body: `При упоминании быстрой доставки средняя оценка <b>${D.h2.fast_avg}★</b> (n=${D.h2.fast_n}),
+    при медленной/сорванной — <b>${D.h2.slow_avg}★</b> (n=${D.h2.slow_n}). Разница подтверждена тестом Манна–Уитни.`
+  },
+  {
+    n:'Гипотеза 3', title:'Несоответствие описанию — главная причина претензий',
+    stamp: D.h3.confirmed, pv: null,
+    body: `Не подтверждается: «Несоответствие описанию» — <b>наименее</b> частая категория (${D.h3.mismatch_rank}-е место из 5).
+    Лидирует «${D.h3.top_category}» с большим отрывом.`
+  },
+  {
+    n:'Гипотеза 4', title:'Отзывы про мягкую мебель длиннее и эмоциональнее, чем про корпусную',
+    stamp: D.h4.confirmed, pv: D.h4.p_value_length,
+    body: `Эффект обратный: корпусная мебель — <b>${D.h4.corpus_len_avg} слов</b> в среднем (n=${D.h4.corpus_n}),
+    мягкая — <b>${D.h4.soft_len_avg} слов</b> (n=${D.h4.soft_n}). Разница статистически значима, но не в предсказанную сторону.`
+  },
+  {
+    n:'Гипотеза 5', title:'Чем выше цена, тем подробнее отзыв',
+    stamp: 'maybe', pv: D.h5.p_value,
+    body: `Цену явно называют лишь <b>${D.h5.pct_of_texted}%</b> отзывов (n=${D.h5.n}) — данных недостаточно.
+    Корреляция слабая и статистически незначима (ρ=${D.h5.rho}). Проверить по имеющимся данным нельзя.`
+  },
+];
+
+document.getElementById('hypGrid').innerHTML = hypDefs.map(h => {
+  let stampHtml;
+  if(h.stamp === true) stampHtml = `<div class="stamp yes">✓ подтверждена</div>`;
+  else if(h.stamp === false) stampHtml = `<div class="stamp no">✗ не подтверждена</div>`;
+  else stampHtml = `<div class="stamp maybe">? недостаточно данных</div>`;
+  return `<div class="hyp-card">
+    ${stampHtml}
+    <div class="n">${h.n}</div>
+    <h3>${h.title}</h3>
+    <div class="body">${h.body}</div>
+    ${h.pv !== null ? `<div class="pvalue">p-value = ${h.pv < 0.001 ? h.pv.toExponential(2) : h.pv.toFixed(3)}</div>` : ''}
+  </div>`;
+}).join('');
+
+// ---------- Company tables ----------
+function fillTable(id, rows){
+  document.getElementById(id).innerHTML = rows.map(r =>
+    `<tr><td>${r.name}</td><td class="num">${r.n}</td><td class="num"><span class="badge ${r.avg>=4?'good':'bad'}">${r.avg.toFixed(2)}</span></td></tr>`
+  ).join('');
+}
+fillTable('tblWorst', D.companies.worst);
+fillTable('tblBest', D.companies.best);
+</script>
+</body>
+</html>
