@@ -1,7 +1,3 @@
-"""
-Очистка и объединение отзывов из 3 источников (Google, Яндекс, 2ГИС)
-для проекта "Анализ отзывов Мебель".
-"""
 import re
 import pandas as pd
 import numpy as np
@@ -14,12 +10,10 @@ RU_MONTHS = {
     'июля': 7, 'августа': 8, 'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12
 }
 
-# Допущение: дата сбора данных (т.к. в исходниках относительные даты "N лет назад" и
-# даты без года). Разное для источников, т.к. похоже собирались не одновременно.
 SCRAPE_DATE = {
-    'Google': datetime(2024, 6, 1),   # только относительные даты -> берём условную дату сбора
-    'Yandex': datetime(2023, 6, 1),   # максимум встречающихся годов = 2023
-    '2GIS':   datetime(2024, 4, 15),  # есть "сегодня", максимум = март/апрель 2024
+    'Google': datetime(2024, 6, 1),
+    'Yandex': datetime(2023, 6, 1),
+    '2GIS':   datetime(2024, 4, 15), 
 }
 
 
@@ -33,8 +27,6 @@ def parse_date(raw, source):
         return ref
     if s.startswith('вчера'):
         return ref - timedelta(days=1)
-
-    # относительные: "N лет/месяцев/недель/дней/часов назад", "неделю назад", "месяц назад"
     m = re.match(r'(\d+)?\s*(час|часа|часов|день|дня|дней|неделю|недели|недель|месяц|месяца|месяцев|год|года|лет)\s*назад', s)
     if m:
         n = int(m.group(1)) if m.group(1) else 1
@@ -50,7 +42,6 @@ def parse_date(raw, source):
         if unit.startswith('год') or unit.startswith('лет'):
             return ref - pd.DateOffset(years=n)
 
-    # абсолютные: "D month [YYYY]", возможно с ", отредактирован"
     s_clean = s.split(',')[0].strip()
     m2 = re.match(r'(\d{1,2})\s+([а-я]+)\s*(\d{4})?', s_clean)
     if m2:
@@ -82,21 +73,16 @@ def main():
     df = pd.concat(dfs, ignore_index=True)
     print(f"Загружено строк всего: {len(df)}")
 
-    # --- нормализация рейтинга компании (Оценка) ---
     df['Оценка'] = (
         df['Оценка'].astype(str).str.replace(',', '.', regex=False).str.strip()
     )
     df['Оценка'] = pd.to_numeric(df['Оценка'], errors='coerce')
 
-    # --- нормализация рейтинга автора отзыва (Оценка автора) ---
-    # Google хранит это как текст "5 звезд", Yandex/2GIS - как число (возможно с запятой)
     df['Оценка автора'] = (
         df['Оценка автора'].astype(str).str.replace(',', '.', regex=False)
         .str.extract(r'(\d+(?:\.\d+)?)')[0]
     )
     df['Оценка автора'] = pd.to_numeric(df['Оценка автора'], errors='coerce')
-
-    # --- нормализация названия компании ---
     df['Наименование'] = (
         df['Наименование'].astype(str).str.strip()
         .str.replace(r'\s+', ' ', regex=True)
