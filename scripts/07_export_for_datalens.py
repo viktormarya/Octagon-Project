@@ -1,19 +1,3 @@
-"""
-Подготовка данных для Yandex DataLens: экспорт в CSV с "плоской" и
-предагрегированной структурой, чтобы дашборд собирался просто drag-and-drop,
-без сложных LOD-вычислений внутри DataLens.
-
-Запуск:
-    python3 07_export_for_datalens.py --input ../output/reviews_categorized.xlsx
-    python3 07_export_for_datalens.py --input ../output/reviews_categorized_gpt.xlsx --suffix _gpt
-
-Результат (в output/datalens/):
-    reviews_flat.csv        - построчные данные, для фильтров/срезов/произвольных чартов
-    complaints_long.csv     - категории жалоб в长 формате, для bar chart без LOD
-    yearly_trend.csv        - число отзывов и средняя оценка по годам
-    hypotheses_summary.csv  - сводка по 5 гипотезам с вердиктами и p-value
-    companies_top.csv       - топ/худшие компании по рейтингу
-"""
 import re
 import argparse
 import pandas as pd
@@ -57,15 +41,9 @@ for cat in CATS:
     flat[f'Жалоба: {cat}'] = df[col].astype(int) if col in df.columns else 0
 
 flat_path = f'{args.outdir}/reviews_flat{args.suffix}.csv'
-flat.to_csv(flat_path, index=False, encoding='utf-8-sig')  # utf-8-sig - чтобы Excel/DataLens не путали кодировку
+flat.to_csv(flat_path, index=False, encoding='utf-8-sig')
 print(f"Сохранено: {flat_path} ({len(flat)} строк)")
 
-# ==================================================================
-# 2. complaints_long.csv - категории жалоб в длинном формате
-# ==================================================================
-# Важно: если это GPT-файл с частичной выборкой (--sample), размечены не все
-# строки - база для % должна считаться по реально размеченному подмножеству,
-# а не по всему датасету, иначе доли будут занижены в десятки раз.
 if 'Тональность_gpt' in df.columns:
     labeled_mask = df['Тональность_gpt'].notna()
     total_texted = int(labeled_mask.sum())
