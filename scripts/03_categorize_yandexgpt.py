@@ -1,32 +1,3 @@
-"""
-Категоризация отзывов через YandexGPT вместо rule-based словарей.
-
-Настройка:
-    export YANDEX_API_KEY="ваш_api_ключ"
-    export YANDEX_FOLDER_ID="ваш_folder_id"     # ID каталога в Yandex Cloud
-
-Запуск:
-    python 03_categorize_yandexgpt.py                  # весь датасет
-    python 03_categorize_yandexgpt.py --limit 50        # тест на 50 отзывах
-    python 03_categorize_yandexgpt.py --resume          # продолжить прерванный запуск
-
-Как это работает:
-    - Отзывы отправляются пачками по BATCH_SIZE штук за один запрос к API
-      (иначе 11 660 отдельных запросов будут долго и дорого выполняться).
-    - Модель возвращает строго структурированный JSON (json_schema) —
-      это надёжнее, чем парсить свободный текст.
-    - Прогресс сохраняется построчно в checkpoint-файл (.jsonl), поэтому
-      скрипт можно прервать (Ctrl+C) и продолжить с --resume, не оплачивая
-      уже обработанные отзывы заново.
-    - При ошибке 429 (превышен лимit запросов) скрипт ждёт и повторяет попытку.
-
-Стоимость и скорость:
-    Актуальные тарифы: https://aistudio.yandex.ru/docs/ru/ai-studio/pricing
-    Синхронный режим имеет квоты на запросы в секунду - между батчами есть
-    пауза (SLEEP_BETWEEN_BATCHES), при необходимости увеличьте.
-    Для 11 660 отзывов при BATCH_SIZE=10 это ~1170 запросов.
-    Перед полным запуском обязательно проверьте на --limit 50-100.
-"""
 import os
 import re
 import json
@@ -37,10 +8,10 @@ import pandas as pd
 import numpy as np
 
 API_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
-MODEL = "yandexgpt-lite"          # для лучшего качества (и дороже): "yandexgpt"
+MODEL = "yandexgpt-lite"         
 MODEL_VERSION = "latest"
 BATCH_SIZE = 10
-SLEEP_BETWEEN_BATCHES = 0.3       # секунд, увеличьте при 429 ошибках
+SLEEP_BETWEEN_BATCHES = 0.3  
 MAX_RETRIES = 5
 
 CATEGORIES = [
